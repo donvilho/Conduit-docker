@@ -1,0 +1,59 @@
+version: '3.7'
+
+services:
+
+  server:
+    container_name: backend
+    restart: unless-stopped
+    build:
+      context: ./nodejs
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mongo
+    
+    environment:
+      - NODE_ENV=development
+    networks:
+      - app-network
+    depends_on: 
+      - mongo
+
+  client:
+    container_name: frontend
+    restart: unless-stopped
+    build:
+      context: ./react-app
+      dockerfile: Dockerfile
+    environment: 
+      - NODE_PATH=/app/src
+    depends_on:
+      - server
+    ports:
+      - '80:80'
+    networks:
+      - app-network
+      
+
+  mongo:
+    container_name: mongodb
+    restart: unless-stopped
+    image: mongo
+    environment: 
+      MONGO_INITDB_DATABSE: conduit-app
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    ports:
+      - '27017:27017'
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo_data: {}
+  mongo_config: {}
